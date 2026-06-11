@@ -1,0 +1,21 @@
+{
+  "name": "fixture-agent-tool",
+  "description": "A local CLI that packages agent run evidence into reviewable release notes.",
+  "audience": "agent builders and maintainers",
+  "features": [
+    "Fixture-backed evidence summaries",
+    "Dry-run launch material generation",
+    "Safety checks for unverified claims"
+  ],
+  "verification": [
+    "npm test",
+    "npm run smoke"
+  ],
+  "limitations": [
+    "Does not publish releases",
+    "Does not post to social accounts"
+  ],
+  "safety": [
+    "External publishing requires explicit approval"
+  ]
+}

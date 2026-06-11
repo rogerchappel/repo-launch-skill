@@ -1,0 +1,7 @@
+{
+  "name": "thin-tool",
+  "description": "Best-in-class fully automated release publisher.",
+  "features": [
+    "Post to social accounts"
+  ]
+}
