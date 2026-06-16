@@ -39,3 +39,16 @@ Generated copy is draft material. The tool never tags releases, creates GitHub r
 - Uses simple local heuristics instead of live repository analysis.
 - Requires human review for factual accuracy and claim quality.
 - Platform-specific post formatting is intentionally minimal in this MVP.
+
+## Verification
+
+```bash
+npm run check
+npm run build
+npm test
+npm run smoke
+npm run package:smoke
+npm run release:check
+```
+
+Use `npm run release:check` before publishing or opening a release PR.
