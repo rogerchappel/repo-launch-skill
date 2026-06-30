@@ -14,6 +14,9 @@ format and uses semantic versioning when versioned releases are published.
 - Fixture-backed validation, smoke, package dry-run, and release-check scripts.
 - Safety notes documenting that generated launch copy requires human review and
   does not publish releases or post externally.
+- Package smoke now asserts the CLI entrypoint, reusable skill file, fixtures,
+  examples, support docs, changelog, bin metadata, and npm allowlist before
+  running `npm pack --dry-run`.
 
 ## Release Links
 

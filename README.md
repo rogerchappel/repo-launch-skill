@@ -52,3 +52,6 @@ npm run release:check
 ```
 
 Use `npm run release:check` before publishing or opening a release PR.
+`npm run package:smoke` verifies the CLI entrypoint, skill file, fixtures,
+examples, support docs, changelog, package allowlist, and npm pack contents
+without publishing.
