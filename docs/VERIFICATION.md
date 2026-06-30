@@ -8,6 +8,11 @@ Commands passed locally:
 - npm run check
 - npm run build
 - npm run smoke
+- npm run package:smoke
+- npm run release:check
 - bash scripts/validate.sh
 
 Smoke output was written to /tmp/repo-launch-skill-smoke.md during validation.
+Package smoke verifies the CLI entrypoint, reusable skill file, fixtures,
+examples, support docs, changelog, package allowlist, bin metadata, and
+`npm pack --dry-run`.
