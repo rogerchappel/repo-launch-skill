@@ -11,7 +11,7 @@
     "check": "node scripts/check.js",
     "build": "node scripts/build.js",
     "smoke": "node bin/repo-launch-skill.js plan --manifest fixtures/manifest.json --readme fixtures/README.sample.md --format md",
-    "package:smoke": "npm pack --dry-run",
+    "package:smoke": "node scripts/package-smoke.js",
     "release:check": "npm run check && npm run build && npm test && npm run smoke && npm run package:smoke"
   },
   "keywords": [
@@ -39,6 +39,7 @@
     "fixtures",
     "examples",
     "docs",
+    "SKILL.md",
     "README.md",
     "CHANGELOG.md",
     "LICENSE",
