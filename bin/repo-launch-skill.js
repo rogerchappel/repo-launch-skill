@@ -17,7 +17,7 @@ const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 const readmePath = getArg('--readme');
 const readme = readmePath ? fs.readFileSync(readmePath, 'utf8') : '';
 const plan = createLaunchPlan(manifest, readme);
-if (command === 'validate') { console.log(JSON.stringify({ readiness: plan.readiness, safety: plan.safety }, null, 2)); process.exit(plan.readiness.score >= 80 ? 0 : 1); }
+if (command === 'validate') { console.log(JSON.stringify({ readiness: plan.readiness, safety: plan.safety }, null, 2)); process.exit(plan.readiness.score >= 80 && !plan.safety.some(finding => finding.level === 'approval') ? 0 : 1); }
 if (getArg('--format', 'json') === 'md') {
   process.stdout.write(['# Launch Plan: ' + plan.name, '', 'Classification: ' + plan.classification, 'Readiness: ' + plan.readiness.score, '', '## Release Notes', plan.releaseNotes, '', '## Demo Script', ...plan.demoScript.map(step => '- ' + step), '', '## Short Post', plan.posts.short, '', '## Gaps', ...(plan.gaps.length ? plan.gaps : ['No blocking gaps detected.']).map(gap => '- ' + gap), ''].join('\n'));
 } else { process.stdout.write(JSON.stringify(plan, null, 2) + '\n'); }
