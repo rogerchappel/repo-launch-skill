@@ -21,11 +21,42 @@ test('creates a shippable launch plan from grounded fixture', () => {
   assert.equal(plan.gaps.length, 0);
 });
 
+test('missing manifest verification blocks an otherwise ready launch plan', () => {
+  const manifest = JSON.parse(fs.readFileSync('fixtures/manifest.json', 'utf8'));
+  manifest.verification = [];
+  const readme = fs.readFileSync('fixtures/README.sample.md', 'utf8');
+  const plan = createLaunchPlan(manifest, readme, { now: '2026-06-11T00:00:00.000Z' });
+
+  assert.equal(plan.readiness.score, 100);
+  assert.equal(plan.classification, 'incubate');
+  assert.ok(plan.safety.some(finding => finding.code === 'missing-verification'));
+});
+
+test('an unverified claim blocks an otherwise ready launch plan', () => {
+  const manifest = JSON.parse(fs.readFileSync('fixtures/manifest.json', 'utf8'));
+  manifest.description += ' This production-ready tool is fully automated.';
+  const readme = fs.readFileSync('fixtures/README.sample.md', 'utf8');
+  const plan = createLaunchPlan(manifest, readme, { now: '2026-06-11T00:00:00.000Z' });
+
+  assert.equal(plan.readiness.score, 100);
+  assert.equal(plan.classification, 'incubate');
+  assert.ok(plan.safety.some(finding => finding.code === 'unverified-claim'));
+});
+
 test('flags unverified launch claims and publishing language', () => {
   const manifest = JSON.parse(fs.readFileSync('fixtures/thin-manifest.json', 'utf8'));
   const findings = inspectLaunchSafety(manifest, 'publish this release');
   assert.ok(findings.some(f => f.code === 'unverified-claim'));
   assert.ok(findings.some(f => f.code === 'external-publishing'));
+});
+
+test('does not treat a blank verification entry as an exact command', () => {
+  const manifest = JSON.parse(fs.readFileSync('fixtures/manifest.json', 'utf8'));
+  manifest.verification = ['  '];
+
+  const findings = inspectLaunchSafety(manifest);
+
+  assert.ok(findings.some(finding => finding.code === 'missing-verification'));
 });
 
 test('validate fails a readiness-passing plan that requires approval', () => {
@@ -38,13 +69,42 @@ test('validate fails a readiness-passing plan that requires approval', () => {
   assert.ok(JSON.parse(result.stdout).safety.some(finding => finding.level === 'approval'));
 });
 
-test('validate passes a readiness-passing plan without approval findings', () => {
+test('validate fails a readiness-passing plan with missing manifest verification', () => {
+  const manifest = JSON.parse(fs.readFileSync('fixtures/manifest.json', 'utf8'));
+  manifest.verification = [];
+  const result = validateManifest(manifest);
+
+  assert.equal(result.status, 1);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.valid, false);
+  assert.equal(output.classification, 'incubate');
+  assert.equal(output.readiness.score, 100);
+  assert.ok(output.blockingFindings.some(finding => finding.code === 'missing-verification'));
+});
+
+test('validate fails a readiness-passing plan with an unverified claim', () => {
+  const manifest = JSON.parse(fs.readFileSync('fixtures/manifest.json', 'utf8'));
+  manifest.description += ' This production-ready tool is fully automated.';
+  const result = validateManifest(manifest);
+
+  assert.equal(result.status, 1);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.valid, false);
+  assert.equal(output.classification, 'incubate');
+  assert.equal(output.readiness.score, 100);
+  assert.ok(output.blockingFindings.some(finding => finding.code === 'unverified-claim'));
+});
+
+test('validate passes a grounded readiness-passing plan without safety findings', () => {
   const manifest = JSON.parse(fs.readFileSync('fixtures/manifest.json', 'utf8'));
   const result = validateManifest(manifest);
 
   assert.equal(result.status, 0);
-  assert.equal(JSON.parse(result.stdout).readiness.score, 100);
-  assert.ok(JSON.parse(result.stdout).safety.every(finding => finding.level !== 'approval'));
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.valid, true);
+  assert.equal(output.classification, 'ship');
+  assert.equal(output.readiness.score, 100);
+  assert.deepEqual(output.blockingFindings, []);
 });
 
 function validateManifest(manifest) {

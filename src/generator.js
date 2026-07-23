@@ -6,16 +6,21 @@ export function createLaunchPlan(rawManifest, readme = '', options = {}) {
   const manifest = normalizeManifest(rawManifest);
   const readiness = scoreReadiness(manifest, readme);
   const safety = inspectLaunchSafety(manifest, readme);
+  const blockingFindings = safety;
   return {
     name: manifest.name,
     generatedAt: options.now || new Date().toISOString(),
-    classification: readiness.score >= 80 && !safety.some(f => f.level === 'approval') ? 'ship' : 'incubate',
+    classification: readiness.score >= 80 && blockingFindings.length === 0 ? 'ship' : 'incubate',
     readiness,
     safety,
+    blockingFindings,
     releaseNotes: releaseNotes(manifest),
     demoScript: demoScript(manifest),
     posts: posts(manifest),
-    gaps: readiness.checks.filter(check => !check.pass).map(check => check.recommendation)
+    gaps: [
+      ...readiness.checks.filter(check => !check.pass).map(check => check.recommendation),
+      ...blockingFindings.map(finding => finding.message)
+    ]
   };
 }
 

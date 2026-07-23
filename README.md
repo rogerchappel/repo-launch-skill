@@ -32,8 +32,17 @@ repo-launch-skill plan --manifest manifest.json --readme README.md --format json
 repo-launch-skill plan --manifest manifest.json --readme README.md --format md
 ```
 
+`validate` exits successfully only when readiness is at least 80 and the plan
+has no unresolved safety findings. Its JSON output includes `classification`,
+`valid`, and `blockingFindings` so automation can explain a failed validation.
+Exact verification commands must be non-empty entries in the manifest;
+commands mentioned only in README text do not satisfy that launch requirement.
+
 ## Safety Notes
 Generated copy is draft material. The tool never tags releases, creates GitHub releases, publishes packages, posts to social channels, or updates external systems.
+Every safety finding blocks a `ship` classification until the manifest or
+launch copy is corrected, including warning-level findings for unverified
+claims and missing exact verification commands.
 
 ## Limitations
 - Uses simple local heuristics instead of live repository analysis.

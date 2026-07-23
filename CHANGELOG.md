@@ -7,6 +7,13 @@ format and uses semantic versioning when versioned releases are published.
 
 ## [Unreleased]
 
+### Changed
+
+- Plans and CLI validation now treat every unresolved safety finding as
+  blocking, including unverified claims and missing manifest verification.
+- Validation output identifies its classification and blocking findings, and
+  manifest verification must contain a non-empty exact command.
+
 ### Added
 
 - Initial release-candidate surface for the local-first repository launch
