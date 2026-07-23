@@ -50,6 +50,15 @@ test('flags unverified launch claims and publishing language', () => {
   assert.ok(findings.some(f => f.code === 'external-publishing'));
 });
 
+test('does not treat a blank verification entry as an exact command', () => {
+  const manifest = JSON.parse(fs.readFileSync('fixtures/manifest.json', 'utf8'));
+  manifest.verification = ['  '];
+
+  const findings = inspectLaunchSafety(manifest);
+
+  assert.ok(findings.some(finding => finding.code === 'missing-verification'));
+});
+
 test('validate fails a readiness-passing plan that requires approval', () => {
   const manifest = JSON.parse(fs.readFileSync('fixtures/manifest.json', 'utf8'));
   manifest.description += ' Please publish this production-ready tool.';
