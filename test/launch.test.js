@@ -66,8 +66,11 @@ test('validate fails a readiness-passing plan with missing manifest verification
   const result = validateManifest(manifest);
 
   assert.equal(result.status, 1);
-  assert.equal(JSON.parse(result.stdout).readiness.score, 100);
-  assert.ok(JSON.parse(result.stdout).safety.some(finding => finding.code === 'missing-verification'));
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.valid, false);
+  assert.equal(output.classification, 'incubate');
+  assert.equal(output.readiness.score, 100);
+  assert.ok(output.blockingFindings.some(finding => finding.code === 'missing-verification'));
 });
 
 test('validate fails a readiness-passing plan with an unverified claim', () => {
@@ -76,8 +79,11 @@ test('validate fails a readiness-passing plan with an unverified claim', () => {
   const result = validateManifest(manifest);
 
   assert.equal(result.status, 1);
-  assert.equal(JSON.parse(result.stdout).readiness.score, 100);
-  assert.ok(JSON.parse(result.stdout).safety.some(finding => finding.code === 'unverified-claim'));
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.valid, false);
+  assert.equal(output.classification, 'incubate');
+  assert.equal(output.readiness.score, 100);
+  assert.ok(output.blockingFindings.some(finding => finding.code === 'unverified-claim'));
 });
 
 test('validate passes a grounded readiness-passing plan without safety findings', () => {
@@ -85,8 +91,11 @@ test('validate passes a grounded readiness-passing plan without safety findings'
   const result = validateManifest(manifest);
 
   assert.equal(result.status, 0);
-  assert.equal(JSON.parse(result.stdout).readiness.score, 100);
-  assert.ok(JSON.parse(result.stdout).safety.every(finding => finding.level !== 'approval'));
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.valid, true);
+  assert.equal(output.classification, 'ship');
+  assert.equal(output.readiness.score, 100);
+  assert.deepEqual(output.blockingFindings, []);
 });
 
 function validateManifest(manifest) {
