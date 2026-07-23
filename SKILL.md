@@ -18,9 +18,14 @@ Use this skill when an agent needs to prepare repository launch material, releas
 ## Workflow
 1. Normalize the manifest and inspect README signals.
 2. Validate readiness and safety findings.
-3. Generate markdown or JSON launch material.
-4. Ground or remove any unverified claim.
-5. Ask for approval before any external publication step.
+3. Treat every unresolved safety finding as blocking; warning-level findings do
+   not permit a `ship` classification or successful CLI validation.
+4. Require at least one non-empty exact verification command in the manifest.
+   README verification text contributes to readiness but does not replace this
+   manifest requirement.
+5. Generate markdown or JSON launch material.
+6. Ground or remove any unverified claim.
+7. Ask for approval before any external publication step.
 
 ## Examples
 ```bash
