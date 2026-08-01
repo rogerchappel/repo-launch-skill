@@ -12,6 +12,44 @@ test('normalizes manifest defaults', () => {
   assert.deepEqual(manifest.features, []);
 });
 
+test('normalizes whitespace-only manifest content as missing', () => {
+  const manifest = normalizeManifest({
+    name: '  example  ',
+    description: '   ',
+    audience: '\t',
+    features: ['', '   '],
+    verification: ['\n'],
+    limitations: ['  '],
+    safety: ['\t']
+  });
+
+  assert.equal(manifest.name, 'example');
+  assert.equal(manifest.description, '');
+  assert.equal(manifest.audience, 'agent builders');
+  assert.deepEqual(manifest.features, []);
+  assert.deepEqual(manifest.verification, []);
+  assert.deepEqual(manifest.limitations, []);
+  assert.deepEqual(manifest.safety, []);
+});
+
+test('trims valid manifest content and removes blank array entries', () => {
+  const manifest = normalizeManifest({
+    description: '  Grounded description.  ',
+    audience: '  maintainers  ',
+    features: ['  Local CLI  ', '', '  Fixture-backed tests '],
+    verification: ['  npm test  ', ' '],
+    limitations: [' ', '  Local analysis only  '],
+    safety: ['  Review generated copy  ', '\t']
+  });
+
+  assert.equal(manifest.description, 'Grounded description.');
+  assert.equal(manifest.audience, 'maintainers');
+  assert.deepEqual(manifest.features, ['Local CLI', 'Fixture-backed tests']);
+  assert.deepEqual(manifest.verification, ['npm test']);
+  assert.deepEqual(manifest.limitations, ['Local analysis only']);
+  assert.deepEqual(manifest.safety, ['Review generated copy']);
+});
+
 test('creates a shippable launch plan from grounded fixture', () => {
   const manifest = JSON.parse(fs.readFileSync('fixtures/manifest.json', 'utf8'));
   const readme = fs.readFileSync('fixtures/README.sample.md', 'utf8');
@@ -80,6 +118,26 @@ test('validate fails a readiness-passing plan with missing manifest verification
   assert.equal(output.classification, 'incubate');
   assert.equal(output.readiness.score, 100);
   assert.ok(output.blockingFindings.some(finding => finding.code === 'missing-verification'));
+});
+
+test('validate rejects whitespace-only launch content with concrete gaps', () => {
+  const manifest = {
+    name: 'blank-content',
+    description: '   ',
+    audience: '\t',
+    features: ['', '   '],
+    verification: [' npm test '],
+    limitations: ['  '],
+    safety: ['\n']
+  };
+  const result = validateManifest(manifest);
+
+  assert.equal(result.status, 1);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.valid, false);
+  assert.equal(output.classification, 'incubate');
+  assert.ok(output.readiness.checks.some(check => check.id === 'description' && !check.pass));
+  assert.ok(output.readiness.checks.some(check => check.id === 'features' && !check.pass));
 });
 
 test('validate fails a readiness-passing plan with an unverified claim', () => {

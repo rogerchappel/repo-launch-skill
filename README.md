@@ -24,6 +24,12 @@ node bin/repo-launch-skill.js plan --manifest fixtures/manifest.json --readme fi
 }
 ```
 
+Manifest text values are trimmed. `description` and `audience`, plus every
+entry in `features`, `verification`, `limitations`, and `safety`, must be
+non-empty strings after trimming. Blank entries are treated as missing and do
+not count toward readiness or appear in generated launch copy. A missing or
+blank audience uses the `agent builders` default.
+
 ## CLI
 
 ```bash
