@@ -1,15 +1,23 @@
 export function normalizeManifest(input) {
   const data = typeof input === 'string' ? JSON.parse(input) : { ...input };
   return {
-    name: data.name || 'unnamed-repo',
-    description: data.description || '',
-    audience: data.audience || 'agent builders',
-    features: Array.isArray(data.features) ? data.features : [],
-    verification: Array.isArray(data.verification) ? data.verification : [],
+    name: nonEmptyText(data.name) || 'unnamed-repo',
+    description: nonEmptyText(data.description),
+    audience: nonEmptyText(data.audience) || 'agent builders',
+    features: textEntries(data.features),
+    verification: textEntries(data.verification),
     links: data.links || {},
-    limitations: Array.isArray(data.limitations) ? data.limitations : [],
-    safety: Array.isArray(data.safety) ? data.safety : []
+    limitations: textEntries(data.limitations),
+    safety: textEntries(data.safety)
   };
+}
+
+function nonEmptyText(value) {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function textEntries(value) {
+  return Array.isArray(value) ? value.map(nonEmptyText).filter(Boolean) : [];
 }
 
 export function readmeSignals(readme = '') {
