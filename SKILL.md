@@ -33,5 +33,10 @@ repo-launch-skill validate --manifest fixtures/manifest.json --readme fixtures/R
 repo-launch-skill plan --manifest fixtures/manifest.json --readme fixtures/README.sample.md --format md
 ```
 
+Options may be reordered, but each option can appear only once and must have a
+value. `plan` accepts `--format json` or `--format md`; malformed arguments exit
+with status 2 and print the error plus usage. Run `repo-launch-skill --help` to
+show usage without requiring a manifest.
+
 ## Verification
 Run `npm test`, `npm run check`, `npm run build`, `npm run smoke`, or `bash scripts/validate.sh` after changes.

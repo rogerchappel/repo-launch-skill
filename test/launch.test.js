@@ -165,6 +165,42 @@ test('validate passes a grounded readiness-passing plan without safety findings'
   assert.deepEqual(output.blockingFindings, []);
 });
 
+test('CLI rejects malformed arguments with usage guidance', () => {
+  const invalidArguments = [
+    { args: ['plan', '--manifest'], error: 'Option --manifest requires a value' },
+    { args: ['plan', '--manifest', 'fixtures/manifest.json', '--bogus'], error: 'Unknown option: --bogus' },
+    { args: ['plan', '--manifest', 'fixtures/manifest.json', '--format', 'yaml'], error: 'Unsupported --format value: yaml' },
+    { args: ['plan', '--manifest', 'fixtures/manifest.json', '--manifest', 'fixtures/thin-manifest.json'], error: 'Duplicate option: --manifest' },
+    { args: ['validate', '--manifest', 'fixtures/manifest.json', 'extra'], error: 'Unexpected positional argument: extra' }
+  ];
+
+  for (const { args, error } of invalidArguments) {
+    const result = runCli(args);
+    assert.equal(result.status, 2, args.join(' '));
+    assert.match(result.stderr, new RegExp(error.replaceAll('-', '\\-')));
+    assert.match(result.stderr, /Usage: repo-launch-skill/);
+  }
+});
+
+test('CLI accepts documented options in any order for plan and validate', () => {
+  const plan = runCli(['plan', '--format', 'json', '--readme', 'fixtures/README.sample.md', '--manifest', 'fixtures/manifest.json']);
+  assert.equal(plan.status, 0);
+  assert.equal(JSON.parse(plan.stdout).classification, 'ship');
+
+  const validate = runCli(['validate', '--readme', 'fixtures/README.sample.md', '--manifest', 'fixtures/manifest.json']);
+  assert.equal(validate.status, 0);
+  assert.equal(JSON.parse(validate.stdout).valid, true);
+});
+
+test('CLI help remains available without required options', () => {
+  for (const args of [['--help'], ['plan', '--help'], ['validate', '--help'], ['help']]) {
+    const result = runCli(args);
+    assert.equal(result.status, 0, args.join(' '));
+    assert.match(result.stdout, /Usage: repo-launch-skill/);
+    assert.equal(result.stderr, '');
+  }
+});
+
 function validateManifest(manifest) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-launch-skill-test-'));
   const manifestPath = path.join(directory, 'manifest.json');
@@ -174,4 +210,8 @@ function validateManifest(manifest) {
   } finally {
     fs.rmSync(directory, { recursive: true, force: true });
   }
+}
+
+function runCli(args) {
+  return spawnSync(process.execPath, ['bin/repo-launch-skill.js', ...args], { encoding: 'utf8' });
 }
