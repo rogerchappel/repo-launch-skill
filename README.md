@@ -44,6 +44,12 @@ has no unresolved safety findings. Its JSON output includes `classification`,
 Exact verification commands must be non-empty entries in the manifest;
 commands mentioned only in README text do not satisfy that launch requirement.
 
+Options may appear in any order after the command. `--manifest`, `--readme`,
+and `--format` accept one value each; `--format` supports `json` or `md` for
+`plan`. Unknown options, missing values, duplicate options, unsupported formats,
+and positional arguments produce a concise error and usage text with exit code
+2. Use `repo-launch-skill --help` for usage without validating inputs.
+
 ## Safety Notes
 Generated copy is draft material. The tool never tags releases, creates GitHub releases, publishes packages, posts to social channels, or updates external systems.
 Every safety finding blocks a `ship` classification until the manifest or
