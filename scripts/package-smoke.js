@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import { readFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 
 const requiredFiles = [
   "bin/repo-launch-skill.js",
@@ -31,4 +33,20 @@ for (const entry of ["src", "bin", "fixtures", "examples", "docs", "SKILL.md", "
 
 assert.equal(packageJson.bin["repo-launch-skill"], "./bin/repo-launch-skill.js");
 
-execFileSync("npm", ["pack", "--dry-run"], { stdio: "inherit" });
+const packOutput = execFileSync("npm", ["pack", "--json"], { encoding: "utf8" });
+const [{ filename }] = JSON.parse(packOutput);
+const installRoot = mkdtempSync(join(tmpdir(), "repo-launch-skill-install-"));
+
+try {
+  execFileSync("npm", ["install", "--prefix", installRoot, resolve(filename)], {
+    stdio: "inherit"
+  });
+  const executable = process.platform === "win32"
+    ? join(installRoot, "node_modules", ".bin", "repo-launch-skill.cmd")
+    : join(installRoot, "node_modules", ".bin", "repo-launch-skill");
+  const help = execFileSync(executable, ["--help"], { encoding: "utf8" });
+  assert.match(help, /Usage: repo-launch-skill/);
+} finally {
+  rmSync(resolve(filename), { force: true });
+  rmSync(installRoot, { recursive: true, force: true });
+}
