@@ -5,6 +5,7 @@ Local-first CLI and library for preparing repository launch material from ground
 ## Quickstart
 
 ```bash
+npm install
 npm test
 npm run smoke
 node bin/repo-launch-skill.js plan --manifest fixtures/manifest.json --readme fixtures/README.sample.md --format md
@@ -79,7 +80,16 @@ without publishing.
 
 ## Install
 
+The package is not published to the npm registry yet. From a source checkout,
+create the same tarball that will be published, install it into a temporary
+local prefix, and run the packaged executable:
+
 ```bash
-npm install repo-launch-skill
-npx repo-launch-skill --help
+npm pack
+npm install --prefix /tmp/repo-launch-skill-install ./repo-launch-skill-0.1.0.tgz
+/tmp/repo-launch-skill-install/node_modules/.bin/repo-launch-skill --help
 ```
+
+After a future npm release, the registry installation will be
+`npm install repo-launch-skill`; it will not work until the package is
+published.
