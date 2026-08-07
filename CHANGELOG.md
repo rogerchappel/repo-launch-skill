@@ -9,6 +9,8 @@ format and uses semantic versioning when versioned releases are published.
 
 ### Changed
 
+- Installation guidance now uses the currently supported packed-tarball path
+  and labels npm registry installation as dependent on a future publication.
 - Plans and CLI validation now treat every unresolved safety finding as
   blocking, including unverified claims and missing manifest verification.
 - Validation output identifies its classification and blocking findings, and
@@ -23,7 +25,7 @@ format and uses semantic versioning when versioned releases are published.
   does not publish releases or post externally.
 - Package smoke now asserts the CLI entrypoint, reusable skill file, fixtures,
   examples, support docs, changelog, bin metadata, and npm allowlist before
-  running `npm pack --dry-run`.
+  packing, installing, and running `repo-launch-skill --help` from the tarball.
 
 ## Release Links
 
