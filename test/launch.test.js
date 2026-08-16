@@ -59,6 +59,15 @@ test('creates a shippable launch plan from grounded fixture', () => {
   assert.equal(plan.gaps.length, 0);
 });
 
+test('README readiness requires affirmative structured guidance', () => {
+  const manifest = JSON.parse(fs.readFileSync('fixtures/manifest.json', 'utf8'));
+  const plan = createLaunchPlan(manifest, 'No quickstart exists. No examples exist.');
+
+  assert.equal(plan.classification, 'incubate');
+  assert.ok(plan.readiness.checks.some(check => check.id === 'quickstart' && !check.pass));
+  assert.ok(plan.readiness.checks.some(check => check.id === 'examples' && !check.pass));
+});
+
 test('missing manifest verification blocks an otherwise ready launch plan', () => {
   const manifest = JSON.parse(fs.readFileSync('fixtures/manifest.json', 'utf8'));
   manifest.verification = [];
@@ -86,6 +95,16 @@ test('flags unverified launch claims and publishing language', () => {
   const findings = inspectLaunchSafety(manifest, 'publish this release');
   assert.ok(findings.some(f => f.code === 'unverified-claim'));
   assert.ok(findings.some(f => f.code === 'external-publishing'));
+});
+
+test('common automatic package publishing language requires approval', () => {
+  const manifest = JSON.parse(fs.readFileSync('fixtures/manifest.json', 'utf8'));
+  manifest.description += ' Publish the package automatically.';
+
+  const plan = createLaunchPlan(manifest, fs.readFileSync('fixtures/README.sample.md', 'utf8'));
+
+  assert.equal(plan.classification, 'incubate');
+  assert.ok(plan.safety.some(finding => finding.level === 'approval' && finding.code === 'external-publishing'));
 });
 
 test('does not treat a blank verification entry as an exact command', () => {
@@ -182,6 +201,39 @@ test('CLI rejects malformed arguments with usage guidance', () => {
   }
 });
 
+test('CLI reports malformed and unreadable input files without a stack trace', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-launch-skill-input-'));
+  const malformedManifest = path.join(directory, 'malformed.json');
+  fs.writeFileSync(malformedManifest, '{');
+
+  try {
+    const cases = [
+      {
+        args: ['plan', '--manifest', malformedManifest],
+        error: 'Invalid manifest JSON: ' + malformedManifest
+      },
+      {
+        args: ['plan', '--manifest', path.join(directory, 'missing.json')],
+        error: 'Unable to read manifest: ' + path.join(directory, 'missing.json')
+      },
+      {
+        args: ['plan', '--manifest', 'fixtures/manifest.json', '--readme', path.join(directory, 'missing.md')],
+        error: 'Unable to read README: ' + path.join(directory, 'missing.md')
+      }
+    ];
+
+    for (const { args, error } of cases) {
+      const result = runCli(args);
+      assert.equal(result.status, 2, args.join(' '));
+      assert.match(result.stderr, new RegExp(escapeRegExp(error)));
+      assert.match(result.stderr, /Usage: repo-launch-skill/);
+      assert.doesNotMatch(result.stderr, /\n\s+at |SyntaxError:/);
+    }
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
 test('CLI accepts documented options in any order for plan and validate', () => {
   const plan = runCli(['plan', '--format', 'json', '--readme', 'fixtures/README.sample.md', '--manifest', 'fixtures/manifest.json']);
   assert.equal(plan.status, 0);
@@ -214,4 +266,8 @@ function validateManifest(manifest) {
 
 function runCli(args) {
   return spawnSync(process.execPath, ['bin/repo-launch-skill.js', ...args], { encoding: 'utf8' });
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
