@@ -32,9 +32,15 @@ if (!manifestPath) fail('Missing required option: --manifest');
 const format = options.get('--format') || 'json';
 if (format !== 'json' && format !== 'md') fail('Unsupported --format value: ' + format);
 
-const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+const manifestSource = readInput(manifestPath, 'manifest');
+let manifest;
+try {
+  manifest = JSON.parse(manifestSource);
+} catch {
+  fail('Invalid manifest JSON: ' + manifestPath);
+}
 const readmePath = options.get('--readme');
-const readme = readmePath ? fs.readFileSync(readmePath, 'utf8') : '';
+const readme = readmePath ? readInput(readmePath, 'README') : '';
 const plan = createLaunchPlan(manifest, readme);
 if (command === 'validate') {
   console.log(JSON.stringify({
@@ -53,4 +59,12 @@ if (format === 'md') {
 function fail(message) {
   console.error(message + '\n' + usage);
   process.exit(2);
+}
+
+function readInput(filePath, label) {
+  try {
+    return fs.readFileSync(filePath, 'utf8');
+  } catch {
+    fail('Unable to read ' + label + ': ' + filePath);
+  }
 }

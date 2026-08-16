@@ -22,11 +22,30 @@ function textEntries(value) {
 
 export function readmeSignals(readme = '') {
   const text = String(readme);
+  const quickstart = sectionBody(text, ['quickstart', 'usage']);
+  const examples = sectionBody(text, ['examples?', 'fixtures?', 'demo']);
+  const safety = sectionBody(text, ['safety', 'limitations?', 'security']);
   return {
-    hasQuickstart: /quickstart|usage/i.test(text),
+    hasQuickstart: hasActionableGuidance(quickstart),
     hasInstall: /install|npm|pip|cargo|go install/i.test(text),
-    hasExamples: /example|fixtures|demo/i.test(text),
-    hasSafety: /safety|limitations|security/i.test(text),
+    hasExamples: hasAffirmativeContent(examples),
+    hasSafety: hasAffirmativeContent(safety),
     hasTests: /npm test|pytest|go test|cargo test|verification/i.test(text)
   };
+}
+
+function sectionBody(markdown, headingNames) {
+  const name = headingNames.join('|');
+  const pattern = new RegExp(`^#{1,6}\\s+(?:${name})\\s*$([\\s\\S]*?)(?=^#{1,6}\\s|(?![\\s\\S]))`, 'im');
+  return markdown.match(pattern)?.[1].trim() || '';
+}
+
+function hasActionableGuidance(body) {
+  return hasAffirmativeContent(body) && (/```[\s\S]*?\S[\s\S]*?```/.test(body) || /^(?:run|install|use|execute|invoke|open|start|try)\b/im.test(body));
+}
+
+function hasAffirmativeContent(body) {
+  if (!body) return false;
+  const prose = body.replace(/```[\s\S]*?```/g, '').trim();
+  return !/^(?:no|not|none|missing|unavailable)\b/i.test(prose || body.trim());
 }

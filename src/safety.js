@@ -1,5 +1,5 @@
 const RISKY_CLAIMS = [/best[- ]in[- ]class/i, /guarantee/i, /production[- ]ready/i, /secure by default/i, /fully automated/i];
-const EXTERNAL_ACTIONS = /\b(publish this|tag release|tweet|post to|send announcement|create release)\b/i;
+const EXTERNAL_ACTIONS = /\b(publish this|publish (?:the |a )?(?:package|release)|tag (?:the )?release|tweet|post to|send (?:an )?announcement|create (?:a )?release)\b/i;
 
 export function inspectLaunchSafety(manifest, readme = '') {
   const features = Array.isArray(manifest.features) ? manifest.features : [];
