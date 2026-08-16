@@ -9,6 +9,10 @@ format and uses semantic versioning when versioned releases are published.
 
 ### Changed
 
+- README readiness now requires affirmative, section-based quickstart,
+  examples, and safety evidence instead of matching bare or negated words.
+- Automatic package and release publishing language now requires approval, and
+  invalid or unreadable CLI inputs produce concise diagnostics without stacks.
 - Installation guidance now uses the currently supported packed-tarball path
   and labels npm registry installation as dependent on a future publication.
 - Plans and CLI validation now treat every unresolved safety finding as

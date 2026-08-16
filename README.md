@@ -44,18 +44,26 @@ has no unresolved safety findings. Its JSON output includes `classification`,
 `valid`, and `blockingFindings` so automation can explain a failed validation.
 Exact verification commands must be non-empty entries in the manifest;
 commands mentioned only in README text do not satisfy that launch requirement.
+README quickstart/usage readiness requires a matching Markdown section with an
+actionable command or instruction. Example and safety readiness likewise use
+non-empty matching sections, so mentions such as `No examples exist` are not
+treated as evidence that documentation exists.
 
 Options may appear in any order after the command. `--manifest`, `--readme`,
 and `--format` accept one value each; `--format` supports `json` or `md` for
 `plan`. Unknown options, missing values, duplicate options, unsupported formats,
 and positional arguments produce a concise error and usage text with exit code
 2. Use `repo-launch-skill --help` for usage without validating inputs.
+Unreadable manifest or README files and malformed manifest JSON use the same
+concise exit-code-2 diagnostic without exposing a runtime stack trace.
 
 ## Safety Notes
 Generated copy is draft material. The tool never tags releases, creates GitHub releases, publishes packages, posts to social channels, or updates external systems.
 Every safety finding blocks a `ship` classification until the manifest or
 launch copy is corrected, including warning-level findings for unverified
 claims and missing exact verification commands.
+Language directing automatic package or release publication is an
+approval-level finding and also blocks shipment.
 
 ## Limitations
 - Uses simple local heuristics instead of live repository analysis.
