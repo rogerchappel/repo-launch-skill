@@ -17,6 +17,8 @@ Use this skill when an agent needs to prepare repository launch material, releas
 
 ## Workflow
 1. Normalize the manifest and inspect README signals.
+   Quickstart/usage, examples, and safety signals require affirmative content
+   beneath matching Markdown headings; a negated mention is not evidence.
 2. Validate readiness and safety findings.
 3. Treat every unresolved safety finding as blocking; warning-level findings do
    not permit a `ship` classification or successful CLI validation.
@@ -37,6 +39,8 @@ Options may be reordered, but each option can appear only once and must have a
 value. `plan` accepts `--format json` or `--format md`; malformed arguments exit
 with status 2 and print the error plus usage. Run `repo-launch-skill --help` to
 show usage without requiring a manifest.
+Malformed JSON and unreadable manifest or README paths also exit with status 2,
+print a concise path-specific error plus usage, and omit runtime stack traces.
 
 ## Verification
 Run `npm test`, `npm run check`, `npm run build`, `npm run smoke`, or `bash scripts/validate.sh` after changes.
