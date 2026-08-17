@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -33,6 +34,14 @@ for (const entry of ["src", "bin", "fixtures", "examples", "docs", "SKILL.md", "
 
 assert.equal(packageJson.bin["repo-launch-skill"], "./bin/repo-launch-skill.js");
 
+const license = await readFile("LICENSE", "utf8");
+const licenseDigest = createHash("sha256").update(license).digest("hex");
+assert.equal(
+  licenseDigest,
+  "685e0af56c651c4eab560c7a03266cf3aa2d33340eefea70ee05cb436ec4a599",
+  "LICENSE should contain the complete canonical MIT text with the project copyright"
+);
+
 const packOutput = execFileSync("npm", ["pack", "--json"], { encoding: "utf8" });
 const [{ filename }] = JSON.parse(packOutput);
 const installRoot = mkdtempSync(join(tmpdir(), "repo-launch-skill-install-"));
@@ -41,6 +50,11 @@ try {
   execFileSync("npm", ["install", "--prefix", installRoot, resolve(filename)], {
     stdio: "inherit"
   });
+  const packedLicense = await readFile(
+    join(installRoot, "node_modules", "repo-launch-skill", "LICENSE"),
+    "utf8"
+  );
+  assert.equal(packedLicense, license, "packed LICENSE should match the verified repository license");
   const executable = process.platform === "win32"
     ? join(installRoot, "node_modules", ".bin", "repo-launch-skill.cmd")
     : join(installRoot, "node_modules", ".bin", "repo-launch-skill");
