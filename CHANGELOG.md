@@ -9,6 +9,8 @@ format and uses semantic versioning when versioned releases are published.
 
 ### Changed
 
+- The published package now includes the complete canonical MIT license text,
+  and package smoke verifies that exact license in the generated tarball.
 - README readiness now requires affirmative, section-based quickstart,
   examples, and safety evidence instead of matching bare or negated words.
 - Automatic package and release publishing language now requires approval, and
