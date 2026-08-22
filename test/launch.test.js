@@ -68,6 +68,43 @@ test('README readiness requires affirmative structured guidance', () => {
   assert.ok(plan.readiness.checks.some(check => check.id === 'examples' && !check.pass));
 });
 
+test('README verification readiness rejects negated and unrelated prose', () => {
+  const manifest = JSON.parse(fs.readFileSync('fixtures/manifest.json', 'utf8'));
+  manifest.verification = [];
+
+  for (const readme of [
+    '# Verification\n\nVerification is unavailable.',
+    '# Status\n\nVerification evidence is reviewed before launch.',
+    '# Verification\n\nDo not run npm test in this repository.'
+  ]) {
+    const plan = createLaunchPlan(manifest, readme);
+    assert.ok(plan.readiness.checks.some(check => check.id === 'verification' && !check.pass));
+    assert.ok(plan.gaps.includes('Add exact verification commands.'));
+    assert.equal(plan.classification, 'incubate');
+    assert.ok(plan.safety.some(finding => finding.code === 'missing-verification'));
+  }
+});
+
+test('README verification readiness accepts executable command examples', () => {
+  const manifest = JSON.parse(fs.readFileSync('fixtures/manifest.json', 'utf8'));
+  manifest.verification = [];
+
+  for (const readme of ['# Verification\n\n```bash\nnpm test\n```', '# Checks\n\nRun `pytest -q`.']) {
+    const plan = createLaunchPlan(manifest, readme);
+    assert.ok(plan.readiness.checks.some(check => check.id === 'verification' && check.pass));
+  }
+});
+
+test('manifest exact verification commands satisfy readiness without README evidence', () => {
+  const manifest = JSON.parse(fs.readFileSync('fixtures/manifest.json', 'utf8'));
+  manifest.verification = ['npm run release:check'];
+
+  const plan = createLaunchPlan(manifest, '# Verification\n\nVerification is unavailable.');
+
+  assert.ok(plan.readiness.checks.some(check => check.id === 'verification' && check.pass));
+  assert.ok(!plan.safety.some(finding => finding.code === 'missing-verification'));
+});
+
 test('missing manifest verification blocks an otherwise ready launch plan', () => {
   const manifest = JSON.parse(fs.readFileSync('fixtures/manifest.json', 'utf8'));
   manifest.verification = [];
