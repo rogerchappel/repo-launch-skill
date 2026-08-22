@@ -30,8 +30,16 @@ export function readmeSignals(readme = '') {
     hasInstall: /install|npm|pip|cargo|go install/i.test(text),
     hasExamples: hasAffirmativeContent(examples),
     hasSafety: hasAffirmativeContent(safety),
-    hasTests: /npm test|pytest|go test|cargo test|verification/i.test(text)
+    hasTests: hasVerificationCommand(text)
   };
+}
+
+function hasVerificationCommand(markdown) {
+  const command = String.raw`(?:npm\s+(?:test|run\s+[\w:.-]+)|npx\s+[\w@/.-]+|pytest\b|python\s+-m\s+pytest\b|go\s+test\b|cargo\s+test\b)`;
+  const fencedCommands = [...markdown.matchAll(/```(?:\w+)?\s*\n([\s\S]*?)```/g)].map(match => match[1]).join('\n');
+  const inlineCommands = [...markdown.matchAll(/`([^`\n]+)`/g)].map(match => match[1]).join('\n');
+  const commandLine = new RegExp(`^(?:\\s*(?:[$>]\\s*)?)${command}`, 'im');
+  return commandLine.test(fencedCommands) || commandLine.test(inlineCommands);
 }
 
 function sectionBody(markdown, headingNames) {
