@@ -65,8 +65,11 @@ Generated copy is draft material. The tool never tags releases, creates GitHub r
 Every safety finding blocks a `ship` classification until the manifest or
 launch copy is corrected, including warning-level findings for unverified
 claims and missing exact verification commands.
-Language directing automatic package or release publication is an
-approval-level finding and also blocks shipment.
+Affirmative language directing package publication, release creation or
+tagging, announcements, or external posts is an approval-level finding and
+also blocks shipment. Clear direct prohibitions such as `Do not publish the
+package`, `Never tag the release`, and `The tool does not create a release`
+document a boundary and are not treated as publishing instructions.
 
 ## Limitations
 - Uses simple local heuristics instead of live repository analysis.

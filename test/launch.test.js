@@ -144,6 +144,29 @@ test('common automatic package publishing language requires approval', () => {
   assert.ok(plan.safety.some(finding => finding.level === 'approval' && finding.code === 'external-publishing'));
 });
 
+test('clear publishing prohibitions do not require approval', () => {
+  const manifest = JSON.parse(fs.readFileSync('fixtures/manifest.json', 'utf8'));
+
+  for (const readme of [
+    'Do not publish the package.',
+    'Never tag the release.',
+    'The tool does not create a release.'
+  ]) {
+    const findings = inspectLaunchSafety(manifest, readme);
+    assert.ok(!findings.some(finding => finding.code === 'external-publishing'), readme);
+  }
+});
+
+test('CLI distinguishes prohibited publishing from affirmative directions', () => {
+  const prohibited = validateManifestWithReadme('Do not publish the package.');
+  assert.equal(prohibited.status, 0);
+  assert.ok(!JSON.parse(prohibited.stdout).blockingFindings.some(finding => finding.code === 'external-publishing'));
+
+  const affirmative = validateManifestWithReadme('Publish the package after validation.');
+  assert.equal(affirmative.status, 1);
+  assert.ok(JSON.parse(affirmative.stdout).blockingFindings.some(finding => finding.code === 'external-publishing'));
+});
+
 test('does not treat a blank verification entry as an exact command', () => {
   const manifest = JSON.parse(fs.readFileSync('fixtures/manifest.json', 'utf8'));
   manifest.verification = ['  '];
@@ -296,6 +319,17 @@ function validateManifest(manifest) {
   fs.writeFileSync(manifestPath, JSON.stringify(manifest));
   try {
     return spawnSync(process.execPath, ['bin/repo-launch-skill.js', 'validate', '--manifest', manifestPath, '--readme', 'fixtures/README.sample.md'], { encoding: 'utf8' });
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+}
+
+function validateManifestWithReadme(readme) {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'repo-launch-skill-readme-'));
+  const readmePath = path.join(directory, 'README.md');
+  fs.writeFileSync(readmePath, fs.readFileSync('fixtures/README.sample.md', 'utf8') + '\n' + readme + '\n');
+  try {
+    return runCli(['validate', '--manifest', 'fixtures/manifest.json', '--readme', readmePath]);
   } finally {
     fs.rmSync(directory, { recursive: true, force: true });
   }
