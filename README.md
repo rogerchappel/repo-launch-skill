@@ -42,11 +42,13 @@ repo-launch-skill plan --manifest manifest.json --readme README.md --format md
 `validate` exits successfully only when readiness is at least 80 and the plan
 has no unresolved safety findings. Its JSON output includes `classification`,
 `valid`, and `blockingFindings` so automation can explain a failed validation.
-Exact verification commands must be non-empty entries in the manifest to clear
-the launch safety requirement. Readiness can also recognize supported commands
-(`npm test`, npm scripts, `pytest`, `go test`, or `cargo test`) when they appear
-as fenced or inline code in the README; prose that merely mentions verification
-or says a command is unavailable does not count as executable evidence.
+Manifest verification entries must start with a supported executable command:
+`npm test`, `npm run <script>`, `npx <tool>`, `pytest`, `python -m pytest`,
+`go test`, or `cargo test`. Arguments may follow the command. Blank entries and
+prose such as `looks good` do not clear readiness or the missing-verification
+safety finding. Readiness recognizes the same commands when they appear as
+fenced or inline code in the README; prose that merely mentions verification or
+says a command is unavailable does not count as executable evidence.
 README quickstart/usage readiness requires a matching Markdown section with an
 actionable command or instruction. Example and safety readiness likewise use
 non-empty matching sections, so mentions such as `No examples exist` are not

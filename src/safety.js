@@ -11,7 +11,7 @@ export function inspectLaunchSafety(manifest, readme = '') {
     if (pattern.test(text)) findings.push({ level: 'warn', code: 'unverified-claim', message: 'Launch copy contains a claim that should be grounded or softened.' });
   }
   if (hasAffirmativeExternalAction(text)) findings.push({ level: 'approval', code: 'external-publishing', message: 'Publishing or release actions require explicit approval.' });
-  const hasExactVerification = verification.some(command => typeof command === 'string' && command.trim().length > 0);
+  const hasExactVerification = hasExecutableVerificationCommand(verification);
   if (!hasExactVerification) findings.push({ level: 'warn', code: 'missing-verification', message: 'No exact verification commands are listed.' });
   return findings;
 }
@@ -22,3 +22,4 @@ function hasAffirmativeExternalAction(text) {
     return !DIRECT_NEGATION.test(prefix);
   });
 }
+import { hasExecutableVerificationCommand } from './verification.js';
