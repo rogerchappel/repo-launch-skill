@@ -105,6 +105,29 @@ test('manifest exact verification commands satisfy readiness without README evid
   assert.ok(!plan.safety.some(finding => finding.code === 'missing-verification'));
 });
 
+test('manifest verification rejects prose-only entries', () => {
+  const manifest = JSON.parse(fs.readFileSync('fixtures/manifest.json', 'utf8'));
+  manifest.verification = ['looks good'];
+  const readme = fs.readFileSync('fixtures/README.sample.md', 'utf8');
+  const plan = createLaunchPlan(manifest, readme);
+
+  assert.ok(plan.readiness.checks.some(check => check.id === 'verification' && !check.pass));
+  assert.ok(plan.safety.some(finding => finding.code === 'missing-verification'));
+  assert.equal(plan.classification, 'incubate');
+});
+
+test('manifest verification preserves supported executable commands', () => {
+  const manifest = JSON.parse(fs.readFileSync('fixtures/manifest.json', 'utf8'));
+  const commands = ['npm test', 'npm run release:check', 'npx eslint .', 'pytest -q', 'python -m pytest', 'go test ./...', 'cargo test'];
+
+  for (const command of commands) {
+    manifest.verification = [command];
+    const plan = createLaunchPlan(manifest, '# Quickstart\n\nRun the tool.\n\n# Examples\n\nExample.\n\n# Safety\n\nReview output.');
+    assert.ok(plan.readiness.checks.some(check => check.id === 'verification' && check.pass), command);
+    assert.ok(!plan.safety.some(finding => finding.code === 'missing-verification'), command);
+  }
+});
+
 test('missing manifest verification blocks an otherwise ready launch plan', () => {
   const manifest = JSON.parse(fs.readFileSync('fixtures/manifest.json', 'utf8'));
   manifest.verification = [];
@@ -196,6 +219,19 @@ test('validate fails a readiness-passing plan with missing manifest verification
   assert.equal(output.valid, false);
   assert.equal(output.classification, 'incubate');
   assert.equal(output.readiness.score, 100);
+  assert.ok(output.blockingFindings.some(finding => finding.code === 'missing-verification'));
+});
+
+test('validate rejects a prose-only manifest verification entry', () => {
+  const manifest = JSON.parse(fs.readFileSync('fixtures/manifest.json', 'utf8'));
+  manifest.verification = ['looks good'];
+  const result = validateManifest(manifest);
+
+  assert.equal(result.status, 1);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.valid, false);
+  assert.equal(output.classification, 'incubate');
+  assert.ok(output.readiness.checks.some(check => check.id === 'verification' && !check.pass));
   assert.ok(output.blockingFindings.some(finding => finding.code === 'missing-verification'));
 });
 
